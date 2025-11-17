@@ -39,7 +39,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setIsAdmin(roles.includes("admin") || roles.includes("super_admin"));
       setIsSuperAdmin(roles.includes("super_admin"));
     } catch (error) {
-      console.error("Error checking user role:", error);
+      // Silently fail - role check will default to false
+      // Production logging should be done server-side
     }
   };
 
@@ -90,9 +91,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       toast.success("Successfully signed in!");
       return { error: null };
     } catch (error: any) {
-      console.error("Sign in error:", error);
-      toast.error(error.message || "Failed to sign in");
-      return { error };
+      // Generic error message - don't expose internal details
+      toast.error("Failed to sign in. Please check your credentials.");
+      return { error: { message: "Authentication failed" } };
     }
   };
 
@@ -116,9 +117,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       toast.success("Account created! Please wait for admin approval.");
       return { error: null };
     } catch (error: any) {
-      console.error("Sign up error:", error);
-      toast.error(error.message || "Failed to create account");
-      return { error };
+      // Generic error message - don't expose internal details
+      toast.error("Failed to create account. Please try again.");
+      return { error: { message: "Registration failed" } };
     }
   };
 
@@ -134,7 +135,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       toast.success("Signed out successfully");
       navigate("/");
     } catch (error: any) {
-      console.error("Sign out error:", error);
+      // Generic error message
       toast.error("Failed to sign out");
     }
   };
@@ -150,9 +151,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       toast.success("Password reset email sent!");
       return { error: null };
     } catch (error: any) {
-      console.error("Password reset error:", error);
-      toast.error(error.message || "Failed to send reset email");
-      return { error };
+      // Generic error message
+      toast.error("Failed to send reset email. Please try again.");
+      return { error: { message: "Password reset failed" } };
     }
   };
 
