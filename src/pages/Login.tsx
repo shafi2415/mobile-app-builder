@@ -15,8 +15,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 const loginSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  email: z.string().trim().toLowerCase().email("Invalid email address").max(255, "Email must be less than 255 characters"),
+  password: z.string().min(6, "Password must be at least 6 characters").max(128, "Password must be less than 128 characters"),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
