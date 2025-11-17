@@ -14,6 +14,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle } from "lucide-react";
+import { useRateLimit } from "@/hooks/useRateLimit";
+import { toast } from "sonner";
 
 const registerSchema = z.object({
   fullName: z.string().trim().min(2, "Name must be at least 2 characters").max(100, "Name must be less than 100 characters"),
@@ -32,6 +34,7 @@ const Register = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const { checkRateLimit, incrementAttempts, resetAttempts } = useRateLimit("register");
 
   const form = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -50,12 +53,22 @@ const Register = () => {
   }, [user, navigate]);
 
   const onSubmit = async (data: RegisterFormData) => {
+    // Check rate limit
+    const { allowed, remainingTime } = checkRateLimit();
+    if (!allowed) {
+      toast.error(`Too many registration attempts. Please try again in ${remainingTime} minutes.`);
+      return;
+    }
+
     setIsLoading(true);
     try {
       const { error } = await signUp(data.email, data.password, data.fullName);
       if (!error) {
+        resetAttempts();
         setShowSuccess(true);
         form.reset();
+      } else {
+        incrementAttempts();
       }
     } finally {
       setIsLoading(false);

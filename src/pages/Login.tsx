@@ -13,6 +13,8 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useRateLimit } from "@/hooks/useRateLimit";
+import { toast } from "sonner";
 
 const loginSchema = z.object({
   email: z.string().trim().toLowerCase().email("Invalid email address").max(255, "Email must be less than 255 characters"),
@@ -25,6 +27,7 @@ const Login = () => {
   const { signIn, user } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const { checkRateLimit, incrementAttempts, resetAttempts } = useRateLimit("login");
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -41,11 +44,21 @@ const Login = () => {
   }, [user, navigate]);
 
   const onSubmit = async (data: LoginFormData) => {
+    // Check rate limit
+    const { allowed, remainingTime } = checkRateLimit();
+    if (!allowed) {
+      toast.error(`Too many login attempts. Please try again in ${remainingTime} minutes.`);
+      return;
+    }
+
     setIsLoading(true);
     try {
       const { error } = await signIn(data.email, data.password);
       if (!error) {
+        resetAttempts();
         navigate("/dashboard");
+      } else {
+        incrementAttempts();
       }
     } finally {
       setIsLoading(false);

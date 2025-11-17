@@ -13,6 +13,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Shield } from "lucide-react";
+import { useRateLimit } from "@/hooks/useRateLimit";
+import { toast } from "sonner";
 
 const adminLoginSchema = z.object({
   email: z.string().trim().toLowerCase().email("Invalid email address").max(255, "Email must be less than 255 characters"),
@@ -25,6 +27,7 @@ const AdminLogin = () => {
   const { signIn, user, isAdmin, isSuperAdmin } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const { checkRateLimit, incrementAttempts, resetAttempts } = useRateLimit("admin_login");
 
   const form = useForm<AdminLoginFormData>({
     resolver: zodResolver(adminLoginSchema),
@@ -43,11 +46,21 @@ const AdminLogin = () => {
   }, [user, isAdmin, isSuperAdmin, navigate]);
 
   const onSubmit = async (data: AdminLoginFormData) => {
+    // Check rate limit
+    const { allowed, remainingTime } = checkRateLimit();
+    if (!allowed) {
+      toast.error(`Too many login attempts. Please try again in ${remainingTime} minutes.`);
+      return;
+    }
+
     setIsLoading(true);
     try {
       const { error } = await signIn(data.email, data.password);
       if (!error) {
+        resetAttempts();
         // Navigation will be handled by useEffect
+      } else {
+        incrementAttempts();
       }
     } finally {
       setIsLoading(false);
