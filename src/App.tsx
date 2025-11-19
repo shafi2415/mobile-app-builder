@@ -116,6 +116,24 @@ const AppContent = () => {
                 }
               />
 
+              {/* Redirect routes for backwards compatibility */}
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <Navigate to="/student/dashboard" replace />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <Navigate to="/student/profile" replace />
+                  </ProtectedRoute>
+                }
+              />
+
               {/* Admin Protected Routes */}
               <Route
                 path="/admin"
