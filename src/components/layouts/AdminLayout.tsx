@@ -101,7 +101,7 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
               </div>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link to="/dashboard" className="cursor-pointer">
+                <Link to="/student/dashboard" className="cursor-pointer">
                   <LayoutDashboard className="mr-2 h-4 w-4" />
                   Student View
                 </Link>

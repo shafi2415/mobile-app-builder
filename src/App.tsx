@@ -12,9 +12,13 @@ import Register from "./pages/Register";
 import AdminLogin from "./pages/AdminLogin";
 import NotFound from "./pages/NotFound";
 import Unauthorized from "./pages/Unauthorized";
+import Maintenance from "./pages/Maintenance";
 import Dashboard from "./pages/student/Dashboard";
 import Complaints from "./pages/student/Complaints";
 import NewComplaint from "./pages/student/NewComplaint";
+import ComplaintTracking from "./pages/student/ComplaintTracking";
+import ComplaintDetails from "./pages/student/ComplaintDetails";
+import SupportHistory from "./pages/student/SupportHistory";
 import Community from "./pages/student/Community";
 import Profile from "./pages/student/Profile";
 import AdminDashboard from "./pages/admin/Dashboard";
@@ -41,6 +45,7 @@ const App = () => (
               <Route path="/register" element={<Register />} />
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/unauthorized" element={<Unauthorized />} />
+              <Route path="/maintenance" element={<Maintenance />} />
 
               {/* Student Protected Routes */}
               <Route
@@ -64,6 +69,30 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <NewComplaint />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/student/complaints/track"
+                element={
+                  <ProtectedRoute>
+                    <ComplaintTracking />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/student/complaints/:id"
+                element={
+                  <ProtectedRoute>
+                    <ComplaintDetails />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/student/support/history"
+                element={
+                  <ProtectedRoute>
+                    <SupportHistory />
                   </ProtectedRoute>
                 }
               />
