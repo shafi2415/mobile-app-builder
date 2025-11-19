@@ -24,7 +24,7 @@ const adminLoginSchema = z.object({
 type AdminLoginFormData = z.infer<typeof adminLoginSchema>;
 
 const AdminLogin = () => {
-  const { signIn, user, isAdmin, isSuperAdmin } = useAuth();
+  const { signIn, user, isAdmin, isSuperAdmin, loading } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const { checkRateLimit, incrementAttempts, resetAttempts } = useRateLimit("admin_login");
@@ -38,12 +38,15 @@ const AdminLogin = () => {
   });
 
   useEffect(() => {
-    if (user && (isAdmin || isSuperAdmin)) {
-      navigate("/admin/dashboard");
-    } else if (user) {
-      navigate("/dashboard");
+    // Only redirect after roles have been checked (loading is false)
+    if (!loading && user) {
+      if (isAdmin || isSuperAdmin) {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/student/dashboard");
+      }
     }
-  }, [user, isAdmin, isSuperAdmin, navigate]);
+  }, [user, isAdmin, isSuperAdmin, loading, navigate]);
 
   const onSubmit = async (data: AdminLoginFormData) => {
     // Check rate limit
