@@ -14,6 +14,7 @@ const RATE_LIMITS = {
   feedback: { maxAttempts: 3, duration: 60 * 60 * 1000 }, // 3 per hour
   chat: { maxAttempts: 60, duration: 60 * 1000 }, // 60 per minute
   file_upload: { maxAttempts: 10, duration: 60 * 60 * 1000 }, // 10 per hour
+  password_reset: { maxAttempts: 3, duration: 60 * 60 * 1000 }, // 3 per hour
 };
 
 type RateLimitAction = keyof typeof RATE_LIMITS;

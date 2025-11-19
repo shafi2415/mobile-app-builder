@@ -29,7 +29,8 @@ import AdminUsers from "./pages/admin/Users";
 import AdminCommunity from "./pages/admin/Community";
 import AdminAnalytics from "./pages/admin/Analytics";
 import AdminSettings from "./pages/admin/Settings";
-import AdminSecurity from "./pages/admin/Security";
+import Security from "@/pages/admin/Security";
+import PasswordReset from "@/pages/PasswordReset";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +46,7 @@ const AppContent = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/password-reset" element={<PasswordReset />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
         <Route path="/maintenance" element={<Maintenance />} />
 
@@ -167,7 +169,7 @@ const AppContent = () => {
                 path="/admin/security"
                 element={
                   <ProtectedRoute requireAdmin>
-                    <AdminSecurity />
+                    <Security />
                   </ProtectedRoute>
                 }
               />
