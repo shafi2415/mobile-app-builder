@@ -29,6 +29,7 @@ import AdminUsers from "./pages/admin/Users";
 import AdminCommunity from "./pages/admin/Community";
 import AdminAnalytics from "./pages/admin/Analytics";
 import AdminSettings from "./pages/admin/Settings";
+import AdminSecurity from "./pages/admin/Security";
 
 const queryClient = new QueryClient();
 
@@ -159,6 +160,14 @@ const AppContent = () => {
                 element={
                   <ProtectedRoute requireAdmin>
                     <AdminSettings />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/security"
+                element={
+                  <ProtectedRoute requireAdmin>
+                    <AdminSecurity />
                   </ProtectedRoute>
                 }
               />
