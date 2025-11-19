@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
+import { useSwipeable } from "react-swipeable";
 import { StudentLayout } from "@/components/layouts/StudentLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,9 @@ import {
   MessageSquare,
   Clock,
   QrCode,
-  Eye
+  Eye,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
@@ -32,6 +35,25 @@ const ComplaintDetails = () => {
   const [loading, setLoading] = useState(true);
   const [showQR, setShowQR] = useState(false);
   const [previewFile, setPreviewFile] = useState<any>(null);
+  const [allComplaints, setAllComplaints] = useState<any[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Swipe handlers for mobile navigation
+  const handlers = useSwipeable({
+    onSwipedLeft: () => {
+      if (currentIndex < allComplaints.length - 1) {
+        const nextComplaint = allComplaints[currentIndex + 1];
+        window.location.href = `/student/complaints/${nextComplaint.id}`;
+      }
+    },
+    onSwipedRight: () => {
+      if (currentIndex > 0) {
+        const prevComplaint = allComplaints[currentIndex - 1];
+        window.location.href = `/student/complaints/${prevComplaint.id}`;
+      }
+    },
+    trackMouse: false,
+  });
 
   const statusColors = {
     submitted: "bg-blue-500",
@@ -170,25 +192,54 @@ const ComplaintDetails = () => {
 
   return (
     <StudentLayout>
-      <div className="space-y-6">
+      <div className="space-y-6" {...handlers}>
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
+          <Button variant="ghost" size="icon" asChild className="touch-manipulation">
             <Link to="/student/complaints/track">
               <ArrowLeft className="h-5 w-5" />
             </Link>
           </Button>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold">{complaint.subject}</h1>
-            <p className="text-muted-foreground">Tracking ID: {complaint.tracking_id}</p>
+            <h1 className="text-2xl md:text-3xl font-bold">{complaint.subject}</h1>
+            <p className="text-sm md:text-base text-muted-foreground">Tracking ID: {complaint.tracking_id}</p>
+          </div>
+          <div className="hidden md:flex items-center gap-2">
+            {currentIndex > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const prevComplaint = allComplaints[currentIndex - 1];
+                  window.location.href = `/student/complaints/${prevComplaint.id}`;
+                }}
+              >
+                <ChevronLeft className="h-4 w-4 mr-2" />
+                Previous
+              </Button>
+            )}
+            {currentIndex < allComplaints.length - 1 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const nextComplaint = allComplaints[currentIndex + 1];
+                  window.location.href = `/student/complaints/${nextComplaint.id}`;
+                }}
+              >
+                Next
+                <ChevronRight className="h-4 w-4 ml-2" />
+              </Button>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setShowQR(!showQR)}
+              className="touch-manipulation"
             >
               <QrCode className="mr-2 h-4 w-4" />
-              QR Code
+              <span className="hidden md:inline">QR Code</span>
             </Button>
             <Badge className={statusColors[complaint.status as keyof typeof statusColors]}>
               {statusLabels[complaint.status as keyof typeof statusLabels]}

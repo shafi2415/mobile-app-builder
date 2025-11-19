@@ -7,6 +7,7 @@ import { MessageItem } from "@/components/chat/MessageItem";
 import { MessageInput } from "@/components/chat/MessageInput";
 import { OnlineUsers } from "@/components/chat/OnlineUsers";
 import { MessageSearch } from "@/components/chat/MessageSearch";
+import { TypingIndicator, useTypingIndicator } from "@/components/chat/TypingIndicator";
 import { useUserPresence } from "@/hooks/useUserPresence";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Pin, Search as SearchIcon } from "lucide-react";
@@ -21,6 +22,7 @@ const Community = () => {
   const [isSearchActive, setIsSearchActive] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { onlineUsers, onlineCount } = useUserPresence();
+  const { setTyping } = useTypingIndicator();
 
   const handleReply = (id: string, userName: string) => {
     setReplyTo({ id, userName });
@@ -176,9 +178,12 @@ const Community = () => {
               )}
             </ScrollArea>
 
+            <TypingIndicator />
+
             <MessageInput
               replyTo={replyTo}
               onCancelReply={() => setReplyTo(null)}
+              onTyping={setTyping}
             />
           </Card>
 

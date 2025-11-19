@@ -1,0 +1,2 @@
+-- Add notification_preferences column to profiles table
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS notification_preferences JSONB DEFAULT '{"email": true, "push": true, "statusChanges": true, "adminResponses": true, "communityMentions": true}'::jsonb;

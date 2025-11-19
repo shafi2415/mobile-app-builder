@@ -1,20 +1,48 @@
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useEffect } from "react";
 
 interface MessageInputProps {
   replyTo?: { id: string; userName: string } | null;
   onCancelReply?: () => void;
+  onTyping?: (isTyping: boolean) => void;
 }
 
-export const MessageInput = ({ replyTo, onCancelReply }: MessageInputProps) => {
+export const MessageInput = ({ replyTo, onCancelReply, onTyping }: MessageInputProps) => {
   const { user } = useAuth();
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+
+  // Handle typing indicator
+  useEffect(() => {
+    if (message.trim()) {
+      if (!isTyping) {
+        setIsTyping(true);
+        onTyping?.(true);
+      }
+    } else {
+      if (isTyping) {
+        setIsTyping(false);
+        onTyping?.(false);
+      }
+    }
+
+    // Debounce: stop typing after 2 seconds of no input
+    const timeout = setTimeout(() => {
+      if (isTyping) {
+        setIsTyping(false);
+        onTyping?.(false);
+      }
+    }, 2000);
+
+    return () => clearTimeout(timeout);
+  }, [message, isTyping, onTyping]);
 
   const handleSend = async () => {
     if (!message.trim() || !user || sending) return;
@@ -31,6 +59,8 @@ export const MessageInput = ({ replyTo, onCancelReply }: MessageInputProps) => {
 
       setMessage("");
       onCancelReply?.();
+      onTyping?.(false);
+      setIsTyping(false);
     } catch (error) {
       toast.error("Failed to send message");
     } finally {
@@ -64,7 +94,7 @@ export const MessageInput = ({ replyTo, onCancelReply }: MessageInputProps) => {
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyPress}
           placeholder={replyTo ? "Write a reply..." : "Type a message..."}
-          className="resize-none"
+          className="resize-none touch-manipulation"
           rows={2}
           disabled={sending}
         />
