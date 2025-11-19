@@ -1,16 +1,17 @@
+// This is the service worker with Workbox manifest injection
 const CACHE_NAME = "brocomp-v1";
-const ASSETS_TO_CACHE = [
-  "/",
-  "/index.html",
-  "/manifest.json",
-];
 
-// Install event - cache assets
+// Workbox will inject the manifest here
+const manifest = self.__WB_MANIFEST || [];
+
+// Install event - cache assets from manifest
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log("Caching app assets");
-      return cache.addAll(ASSETS_TO_CACHE);
+      console.log("Caching app assets from manifest");
+      // Cache URLs from the injected manifest
+      const urlsToCache = manifest.map(entry => entry.url);
+      return cache.addAll(urlsToCache);
     })
   );
   self.skipWaiting();
