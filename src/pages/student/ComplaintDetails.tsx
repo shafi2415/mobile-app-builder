@@ -15,10 +15,14 @@ import {
   Download,
   Star,
   MessageSquare,
-  Clock
+  Clock,
+  QrCode,
+  Eye
 } from "lucide-react";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
+import { QRCodeDisplay } from "@/components/QRCodeDisplay";
+import { FilePreviewModal } from "@/components/FilePreviewModal";
 
 const ComplaintDetails = () => {
   const { id } = useParams();
@@ -30,6 +34,8 @@ const ComplaintDetails = () => {
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState("");
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
+  const [showQR, setShowQR] = useState(false);
+  const [previewFile, setPreviewFile] = useState<any>(null);
 
   const statusColors = {
     submitted: "bg-blue-500",
@@ -167,7 +173,7 @@ const ComplaintDetails = () => {
 
   const downloadFile = async (file: any) => {
     const { data } = await supabase.storage
-      .from("complaint-files")
+      .from("complaint-attachments")
       .download(file.file_path);
 
     if (data) {
@@ -176,8 +182,11 @@ const ComplaintDetails = () => {
       a.href = url;
       a.download = file.file_name;
       a.click();
+      URL.revokeObjectURL(url);
     }
   };
+
+  const complaintUrl = `${window.location.origin}/student/complaints/${id}`;
 
   if (loading) {
     return (
@@ -215,10 +224,31 @@ const ComplaintDetails = () => {
             <h1 className="text-3xl font-bold">{complaint.subject}</h1>
             <p className="text-muted-foreground">Tracking ID: {complaint.tracking_id}</p>
           </div>
-          <Badge className={statusColors[complaint.status as keyof typeof statusColors]}>
-            {statusLabels[complaint.status as keyof typeof statusLabels]}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowQR(!showQR)}
+            >
+              <QrCode className="mr-2 h-4 w-4" />
+              QR Code
+            </Button>
+            <Badge className={statusColors[complaint.status as keyof typeof statusColors]}>
+              {statusLabels[complaint.status as keyof typeof statusLabels]}
+            </Badge>
+          </div>
         </div>
+
+        {/* QR Code Section */}
+        {showQR && (
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold mb-4">Complaint QR Code</h2>
+            <p className="text-muted-foreground mb-4">
+              Scan this QR code to quickly access this complaint
+            </p>
+            <QRCodeDisplay value={complaintUrl} title={complaint.tracking_id} />
+          </Card>
+        )}
 
         {/* Status Timeline */}
         <Card className="p-6">
@@ -293,7 +323,7 @@ const ComplaintDetails = () => {
               {files.map((file) => (
                 <div
                   key={file.id}
-                  className="flex items-center justify-between p-3 border rounded-lg"
+                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <FileText className="h-5 w-5 text-muted-foreground" />
@@ -304,18 +334,33 @@ const ComplaintDetails = () => {
                       </p>
                     </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => downloadFile(file)}
-                  >
-                    <Download className="h-4 w-4" />
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setPreviewFile(file)}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => downloadFile(file)}
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
           </Card>
         )}
+
+        <FilePreviewModal
+          file={previewFile}
+          isOpen={!!previewFile}
+          onClose={() => setPreviewFile(null)}
+        />
 
         {/* Responses */}
         {responses.length > 0 && (
