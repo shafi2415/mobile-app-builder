@@ -12,6 +12,10 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Upload, X, FileIcon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRateLimit } from "@/hooks/useRateLimit";
+import { complaintSchema } from "@/lib/validation";
+import { sanitizeText } from "@/lib/sanitize";
+import { validateFile, MAX_FILES_PER_COMPLAINT } from "@/lib/validation";
 
 const NewComplaint = () => {
   const { user } = useAuth();
@@ -23,6 +27,8 @@ const NewComplaint = () => {
   const [categoryId, setCategoryId] = useState("");
   const [priorityId, setPriorityId] = useState("");
   const [files, setFiles] = useState<File[]>([]);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const { checkRateLimit, incrementAttempts } = useRateLimit("complaint");
 
   const { data: categories } = useQuery({
     queryKey: ["categories"],
@@ -46,13 +52,17 @@ const NewComplaint = () => {
     mutationFn: async () => {
       if (!user) throw new Error("Not authenticated");
 
+      // Sanitize inputs before submission
+      const sanitizedSubject = sanitizeText(subject);
+      const sanitizedDescription = sanitizeText(description);
+
       // Create complaint
       const { data: complaint, error: complaintError } = await supabase
         .from("complaints")
         .insert({
           user_id: user.id,
-          subject,
-          description,
+          subject: sanitizedSubject,
+          description: sanitizedDescription,
           channel,
           category_id: categoryId,
           priority_id: priorityId,
@@ -102,7 +112,25 @@ const NewComplaint = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const newFiles = Array.from(e.target.files);
-      setFiles([...files, ...newFiles]);
+      
+      // Check total file count
+      if (files.length + newFiles.length > MAX_FILES_PER_COMPLAINT) {
+        toast.error(`Maximum ${MAX_FILES_PER_COMPLAINT} files allowed`);
+        return;
+      }
+
+      // Validate each file
+      const validFiles: File[] = [];
+      for (const file of newFiles) {
+        const validation = validateFile(file);
+        if (!validation.valid) {
+          toast.error(validation.error);
+        } else {
+          validFiles.push(file);
+        }
+      }
+      
+      setFiles([...files, ...validFiles]);
     }
   };
 
@@ -112,10 +140,42 @@ const NewComplaint = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
+
+    // Check rate limit
+    const rateCheck = checkRateLimit();
+    if (!rateCheck.allowed) {
+      toast.error(`Too many complaints. Please wait ${rateCheck.remainingTime} minutes.`);
+      return;
+    }
+
+    // Validate form data
+    const result = complaintSchema.safeParse({
+      subject: subject.trim(),
+      description: description.trim(),
+      channel,
+      category_id: categoryId,
+      priority_id: priorityId,
+    });
+
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      result.error.errors.forEach((err) => {
+        if (err.path[0]) {
+          fieldErrors[err.path[0].toString()] = err.message;
+        }
+      });
+      setErrors(fieldErrors);
+      toast.error("Please fix the form errors");
+      return;
+    }
+
     if (!subject || !description || !categoryId || !priorityId) {
       toast.error("Please fill in all required fields");
       return;
     }
+    
+    incrementAttempts();
     submitComplaintMutation.mutate();
   };
 
@@ -156,6 +216,9 @@ const NewComplaint = () => {
                   ))}
                 </SelectContent>
               </Select>
+              {errors.category_id && (
+                <p className="text-sm text-destructive mt-1">{errors.category_id}</p>
+              )}
             </div>
 
             <div>
@@ -170,6 +233,9 @@ const NewComplaint = () => {
                   ))}
                 </SelectContent>
               </Select>
+              {errors.priority_id && (
+                <p className="text-sm text-destructive mt-1">{errors.priority_id}</p>
+              )}
             </div>
 
             <div>
@@ -181,6 +247,9 @@ const NewComplaint = () => {
                 placeholder="Brief summary of your issue"
                 required
               />
+              {errors.subject && (
+                <p className="text-sm text-destructive mt-1">{errors.subject}</p>
+              )}
             </div>
 
             <div>
@@ -193,6 +262,9 @@ const NewComplaint = () => {
                 rows={6}
                 required
               />
+              {errors.description && (
+                <p className="text-sm text-destructive mt-1">{errors.description}</p>
+              )}
             </div>
 
             <div>

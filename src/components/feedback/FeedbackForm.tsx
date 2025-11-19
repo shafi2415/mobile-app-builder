@@ -7,6 +7,9 @@ import { Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useRateLimit } from "@/hooks/useRateLimit";
+import { feedbackSchema } from "@/lib/validation";
+import { sanitizeText } from "@/lib/sanitize";
 
 interface FeedbackFormProps {
   complaintId: string;
@@ -20,25 +23,48 @@ export const FeedbackForm = ({ complaintId, onSuccess }: FeedbackFormProps) => {
   const [comment, setComment] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const { checkRateLimit, incrementAttempts } = useRateLimit("feedback");
 
   const handleSubmit = async () => {
-    if (!user || rating === 0) {
-      toast.error("Please select a rating");
+    if (!user) {
+      toast.error("You must be logged in");
+      return;
+    }
+
+    // Check rate limit
+    const rateCheck = checkRateLimit();
+    if (!rateCheck.allowed) {
+      toast.error(`Too many feedback submissions. Please wait ${rateCheck.remainingTime} minutes.`);
+      return;
+    }
+
+    // Validate feedback
+    const result = feedbackSchema.safeParse({
+      rating,
+      comment: comment.trim() || undefined,
+      is_anonymous: isAnonymous,
+    });
+
+    if (!result.success) {
+      toast.error(result.error.errors[0]?.message || "Please fix the form errors");
       return;
     }
 
     setSubmitting(true);
     try {
+      const sanitizedComment = comment.trim() ? sanitizeText(comment.trim()) : null;
+      
       const { error } = await supabase.from("complaint_feedback").insert({
         complaint_id: complaintId,
         user_id: user.id,
         rating,
-        comment: comment.trim() || null,
+        comment: sanitizedComment,
         is_anonymous: isAnonymous,
       });
 
       if (error) throw error;
 
+      incrementAttempts();
       toast.success("Thank you for your feedback!");
       onSuccess?.();
     } catch (error) {
