@@ -6,14 +6,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { MessageItem } from "@/components/chat/MessageItem";
 import { MessageInput } from "@/components/chat/MessageInput";
 import { OnlineUsers } from "@/components/chat/OnlineUsers";
+import { MessageSearch } from "@/components/chat/MessageSearch";
 import { useUserPresence } from "@/hooks/useUserPresence";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Pin } from "lucide-react";
+import { Pin, Search as SearchIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const Community = () => {
   const [messages, setMessages] = useState<any[]>([]);
+  const [filteredMessages, setFilteredMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [replyTo, setReplyTo] = useState<{ id: string; userName: string } | null>(null);
+  const [showSearch, setShowSearch] = useState(false);
+  const [isSearchActive, setIsSearchActive] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { onlineUsers, onlineCount } = useUserPresence();
 
@@ -66,25 +71,55 @@ const Community = () => {
     setLoading(false);
   };
 
-  const pinnedMessages = messages.filter((m) => m.pinned);
-  const regularMessages = messages.filter((m) => !m.pinned && !m.parent_id);
+  const pinnedMessages = isSearchActive ? filteredMessages.filter((m) => m.pinned) : messages.filter((m) => m.pinned);
+  const regularMessages = isSearchActive 
+    ? filteredMessages.filter((m) => !m.pinned && !m.parent_id)
+    : messages.filter((m) => !m.pinned && !m.parent_id);
 
   const getReplies = (parentId: string) => {
-    return messages.filter((m) => m.parent_id === parentId);
+    const sourceMessages = isSearchActive ? filteredMessages : messages;
+    return sourceMessages.filter((m) => m.parent_id === parentId);
+  };
+
+  const handleSearch = (results: any[]) => {
+    setFilteredMessages(results);
+    setIsSearchActive(true);
+  };
+
+  const handleClearSearch = () => {
+    setFilteredMessages([]);
+    setIsSearchActive(false);
   };
 
   return (
     <StudentLayout>
       <div className="space-y-6 h-[calc(100vh-8rem)]">
         <div>
-          <h1 className="text-3xl font-bold">Community Chat</h1>
-          <p className="text-muted-foreground">
-            Connect with fellow students • {onlineCount} online
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold">Community Chat</h1>
+              <p className="text-muted-foreground">
+                Connect with fellow students • {onlineCount} online
+                {isSearchActive && ` • ${filteredMessages.length} results`}
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowSearch(!showSearch)}
+            >
+              <SearchIcon className="h-4 w-4 mr-2" />
+              Search
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100%-5rem)]">
           <Card className="lg:col-span-3 flex flex-col h-full">
+            {showSearch && (
+              <MessageSearch onSearch={handleSearch} onClear={handleClearSearch} />
+            )}
+            
             {pinnedMessages.length > 0 && (
               <div className="border-b bg-muted/30 p-4">
                 <div className="flex items-center gap-2 mb-2">
