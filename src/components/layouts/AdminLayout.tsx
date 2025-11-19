@@ -32,6 +32,7 @@ const navigation = [
   { name: "Users", href: "/admin/users", icon: Users },
   { name: "Community", href: "/admin/community", icon: MessageSquare },
   { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
+  { name: "Security", href: "/admin/security", icon: Shield },
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
