@@ -41,6 +41,12 @@ export const Header = () => {
             >
               Login
             </Link>
+            <Link
+              to="/admin/login"
+              className="text-foreground/80 hover:text-foreground transition-colors font-medium"
+            >
+              Admin Portal
+            </Link>
             <motion.div whileHover="hover" whileTap="tap">
               <Link to="/register">
                 <Button size="sm" className="relative overflow-hidden">
@@ -94,6 +100,13 @@ export const Header = () => {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Login
+              </Link>
+              <Link
+                to="/admin/login"
+                className="text-foreground/80 hover:text-foreground transition-colors font-medium"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Admin Portal
               </Link>
               <Link to="/register" onClick={() => setMobileMenuOpen(false)}>
                 <Button size="sm" className="w-full">
