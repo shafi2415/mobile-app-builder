@@ -5,7 +5,6 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -13,7 +12,6 @@ import {
   Calendar, 
   FileText, 
   Download,
-  Star,
   MessageSquare,
   Clock,
   QrCode,
@@ -23,6 +21,7 @@ import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { QRCodeDisplay } from "@/components/QRCodeDisplay";
 import { FilePreviewModal } from "@/components/FilePreviewModal";
+import { FeedbackForm } from "@/components/feedback/FeedbackForm";
 
 const ComplaintDetails = () => {
   const { id } = useParams();
@@ -31,9 +30,6 @@ const ComplaintDetails = () => {
   const [responses, setResponses] = useState<any[]>([]);
   const [files, setFiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [rating, setRating] = useState(0);
-  const [feedback, setFeedback] = useState("");
-  const [submittingFeedback, setSubmittingFeedback] = useState(false);
   const [showQR, setShowQR] = useState(false);
   const [previewFile, setPreviewFile] = useState<any>(null);
 
@@ -130,45 +126,6 @@ const ComplaintDetails = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  };
-
-  const handleSubmitFeedback = async () => {
-    if (rating === 0) {
-      toast({
-        title: "Rating Required",
-        description: "Please select a rating",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setSubmittingFeedback(true);
-    try {
-      const { error } = await supabase.from("complaint_feedback").insert({
-        complaint_id: id,
-        user_id: (await supabase.auth.getUser()).data.user?.id,
-        rating,
-        comment: feedback,
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Feedback Submitted",
-        description: "Thank you for your feedback!",
-      });
-
-      setRating(0);
-      setFeedback("");
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setSubmittingFeedback(false);
-    }
   };
 
   const downloadFile = async (file: any) => {
@@ -385,40 +342,15 @@ const ComplaintDetails = () => {
 
         {/* Feedback Form (only for resolved complaints) */}
         {complaint.status === "resolved" && (
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Rate Your Experience</h2>
-            <div className="space-y-4">
-              <div className="flex gap-2">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    onClick={() => setRating(star)}
-                    className="transition-transform hover:scale-110"
-                  >
-                    <Star
-                      className={`h-8 w-8 ${
-                        star <= rating
-                          ? "fill-yellow-400 text-yellow-400"
-                          : "text-muted-foreground"
-                      }`}
-                    />
-                  </button>
-                ))}
-              </div>
-              <Textarea
-                placeholder="Share your feedback (optional)"
-                value={feedback}
-                onChange={(e) => setFeedback(e.target.value)}
-                rows={4}
-              />
-              <Button
-                onClick={handleSubmitFeedback}
-                disabled={submittingFeedback}
-              >
-                Submit Feedback
-              </Button>
-            </div>
-          </Card>
+          <FeedbackForm 
+            complaintId={complaint.id} 
+            onSuccess={() => {
+              toast({
+                title: "Success",
+                description: "Thank you for your feedback!",
+              });
+            }}
+          />
         )}
       </div>
     </StudentLayout>
