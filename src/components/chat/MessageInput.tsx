@@ -6,6 +6,9 @@ import { Send, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useEffect } from "react";
+import { useRateLimit } from "@/hooks/useRateLimit";
+import { chatMessageSchema } from "@/lib/validation";
+import { sanitizeText } from "@/lib/sanitize";
 
 interface MessageInputProps {
   replyTo?: { id: string; userName: string } | null;
@@ -18,6 +21,7 @@ export const MessageInput = ({ replyTo, onCancelReply, onTyping }: MessageInputP
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const { checkRateLimit, incrementAttempts } = useRateLimit("chat");
 
   // Handle typing indicator
   useEffect(() => {
@@ -47,16 +51,37 @@ export const MessageInput = ({ replyTo, onCancelReply, onTyping }: MessageInputP
   const handleSend = async () => {
     if (!message.trim() || !user || sending) return;
 
+    // Check rate limit
+    const rateCheck = checkRateLimit();
+    if (!rateCheck.allowed) {
+      toast.error("You're sending messages too quickly. Please slow down.");
+      return;
+    }
+
+    // Validate message
+    const result = chatMessageSchema.safeParse({
+      message: message.trim(),
+      parent_id: replyTo?.id || null,
+    });
+
+    if (!result.success) {
+      toast.error(result.error.errors[0]?.message || "Invalid message");
+      return;
+    }
+
     setSending(true);
     try {
+      const sanitizedMessage = sanitizeText(message.trim());
+      
       const { error } = await supabase.from("chat_messages").insert({
         user_id: user.id,
-        message: message.trim(),
+        message: sanitizedMessage,
         parent_id: replyTo?.id || null,
       });
 
       if (error) throw error;
 
+      incrementAttempts();
       setMessage("");
       onCancelReply?.();
       onTyping?.(false);
