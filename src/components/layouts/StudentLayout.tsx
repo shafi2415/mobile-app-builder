@@ -17,22 +17,22 @@ import {
   FileText,
   User,
   LogOut,
-  Bell,
   Menu,
   X,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { NotificationBell } from "@/components/NotificationBell";
 
 interface StudentLayoutProps {
   children: ReactNode;
 }
 
 const navigation = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Complaints", href: "/complaints", icon: FileText },
-  { name: "Community", href: "/community", icon: MessageSquare },
-  { name: "Profile", href: "/profile", icon: User },
+  { name: "Dashboard", href: "/student/dashboard", icon: LayoutDashboard },
+  { name: "Complaints", href: "/student/complaints", icon: FileText },
+  { name: "Community", href: "/student/community", icon: MessageSquare },
+  { name: "Profile", href: "/student/profile", icon: User },
 ];
 
 export const StudentLayout = ({ children }: StudentLayoutProps) => {
@@ -74,10 +74,7 @@ export const StudentLayout = ({ children }: StudentLayoutProps) => {
 
           <div className="flex items-center gap-4">
             {/* Notifications */}
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary" />
-            </Button>
+            <NotificationBell />
 
             {/* User Menu */}
             <DropdownMenu>

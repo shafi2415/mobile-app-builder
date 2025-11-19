@@ -14,6 +14,7 @@ import NotFound from "./pages/NotFound";
 import Unauthorized from "./pages/Unauthorized";
 import Dashboard from "./pages/student/Dashboard";
 import Complaints from "./pages/student/Complaints";
+import NewComplaint from "./pages/student/NewComplaint";
 import Community from "./pages/student/Community";
 import Profile from "./pages/student/Profile";
 import AdminDashboard from "./pages/admin/Dashboard";
@@ -43,7 +44,7 @@ const App = () => (
 
               {/* Student Protected Routes */}
               <Route
-                path="/dashboard"
+                path="/student/dashboard"
                 element={
                   <ProtectedRoute>
                     <Dashboard />
@@ -51,7 +52,7 @@ const App = () => (
                 }
               />
               <Route
-                path="/complaints"
+                path="/student/complaints"
                 element={
                   <ProtectedRoute>
                     <Complaints />
@@ -59,7 +60,15 @@ const App = () => (
                 }
               />
               <Route
-                path="/community"
+                path="/student/complaints/new"
+                element={
+                  <ProtectedRoute>
+                    <NewComplaint />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/student/community"
                 element={
                   <ProtectedRoute>
                     <Community />
@@ -67,7 +76,7 @@ const App = () => (
                 }
               />
               <Route
-                path="/profile"
+                path="/student/profile"
                 element={
                   <ProtectedRoute>
                     <Profile />
