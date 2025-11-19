@@ -22,6 +22,9 @@ export type Database = {
           id: string
           message: string
           parent_id: string | null
+          pinned: boolean | null
+          pinned_at: string | null
+          pinned_by: string | null
           user_id: string
         }
         Insert: {
@@ -31,6 +34,9 @@ export type Database = {
           id?: string
           message: string
           parent_id?: string | null
+          pinned?: boolean | null
+          pinned_at?: string | null
+          pinned_by?: string | null
           user_id: string
         }
         Update: {
@@ -40,6 +46,9 @@ export type Database = {
           id?: string
           message?: string
           parent_id?: string | null
+          pinned?: boolean | null
+          pinned_at?: string | null
+          pinned_by?: string | null
           user_id?: string
         }
         Relationships: [
