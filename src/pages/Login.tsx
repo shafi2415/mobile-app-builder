@@ -15,45 +15,50 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useRateLimit } from "@/hooks/useRateLimit";
 import { toast } from "sonner";
-
 const loginSchema = z.object({
   email: z.string().trim().toLowerCase().email("Invalid email address").max(255, "Email must be less than 255 characters"),
-  password: z.string().min(8, "Password must be at least 8 characters").max(128, "Password must be less than 128 characters"),
+  password: z.string().min(8, "Password must be at least 8 characters").max(128, "Password must be less than 128 characters")
 });
-
 type LoginFormData = z.infer<typeof loginSchema>;
-
 const Login = () => {
-  const { signIn, user } = useAuth();
+  const {
+    signIn,
+    user
+  } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const { checkRateLimit, incrementAttempts, resetAttempts } = useRateLimit("login");
-
+  const {
+    checkRateLimit,
+    incrementAttempts,
+    resetAttempts
+  } = useRateLimit("login");
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
-      password: "",
-    },
+      password: ""
+    }
   });
-
   useEffect(() => {
     if (user) {
       navigate("/dashboard");
     }
   }, [user, navigate]);
-
   const onSubmit = async (data: LoginFormData) => {
     // Check rate limit
-    const { allowed, remainingTime } = checkRateLimit();
+    const {
+      allowed,
+      remainingTime
+    } = checkRateLimit();
     if (!allowed) {
       toast.error(`Too many login attempts. Please try again in ${remainingTime} minutes.`);
       return;
     }
-
     setIsLoading(true);
     try {
-      const { error } = await signIn(data.email, data.password);
+      const {
+        error
+      } = await signIn(data.email, data.password);
       if (!error) {
         resetAttempts();
         navigate("/dashboard");
@@ -64,17 +69,9 @@ const Login = () => {
       setIsLoading(false);
     }
   };
-
-  return (
-    <div className="min-h-screen flex flex-col">
+  return <div className="min-h-screen flex flex-col">
       <Header />
-      <motion.main
-        variants={pageVariants}
-        initial="initial"
-        animate="animate"
-        exit="exit"
-        className="flex-1 pt-16 flex items-center justify-center"
-      >
+      <motion.main variants={pageVariants} initial="initial" animate="animate" exit="exit" className="flex-1 pt-16 flex items-center justify-center">
         <Card className="w-full max-w-md p-8 mx-4">
           <div className="space-y-6">
             <div className="space-y-2 text-center">
@@ -84,41 +81,31 @@ const Login = () => {
 
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
+                <FormField control={form.control} name="email" render={({
+                field
+              }) => <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
                         <Input placeholder="student@brototype.com" type="email" {...field} />
                       </FormControl>
                       <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    </FormItem>} />
 
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
+                <FormField control={form.control} name="password" render={({
+                field
+              }) => <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
                         <Input placeholder="••••••••" type="password" {...field} />
                       </FormControl>
                       <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                    </FormItem>} />
 
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "Signing in..." : "Sign In"}
               </Button>
               <Link to="/password-reset">
-                <Button type="button" variant="link" className="w-full">
-                  Forgot Password?
-                </Button>
+                
               </Link>
               </form>
             </Form>
@@ -138,8 +125,6 @@ const Login = () => {
         </Card>
       </motion.main>
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default Login;
