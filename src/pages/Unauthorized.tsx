@@ -24,7 +24,7 @@ const Unauthorized = () => {
             <Link to="/">Go Home</Link>
           </Button>
           <Button asChild variant="outline">
-            <Link to="/dashboard">Dashboard</Link>
+            <Link to="/student/dashboard">Dashboard</Link>
           </Button>
         </div>
       </motion.div>

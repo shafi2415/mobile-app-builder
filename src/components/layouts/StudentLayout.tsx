@@ -46,7 +46,7 @@ export const StudentLayout = ({ children }: StudentLayoutProps) => {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-8">
-            <Link to="/dashboard" className="flex items-center gap-2">
+            <Link to="/student/dashboard" className="flex items-center gap-2">
               <span className="text-2xl font-bold">BroComp</span>
             </Link>
 
@@ -99,7 +99,7 @@ export const StudentLayout = ({ children }: StudentLayoutProps) => {
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link to="/profile" className="cursor-pointer">
+                  <Link to="/student/profile" className="cursor-pointer">
                     <User className="mr-2 h-4 w-4" />
                     Profile
                   </Link>
