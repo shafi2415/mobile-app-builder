@@ -15,44 +15,18 @@ export default defineConfig(({ mode }) => ({
     mode === 'development' && componentTagger(),
     VitePWA({
       registerType: 'autoUpdate',
+      strategies: 'injectManifest',
+      srcDir: 'public',
+      filename: 'sw.js',
       includeAssets: ['favicon.ico', 'robots.txt'],
-      manifest: {
-        name: 'BroComp - Student Support System',
-        short_name: 'BroComp',
-        description: 'Comprehensive student support and community platform for Brototype',
-        theme_color: '#000000',
-        background_color: '#ffffff',
-        display: 'standalone',
-        start_url: '/',
-        icons: [
-          {
-            src: '/placeholder.svg',
-            sizes: '192x192',
-            type: 'image/svg+xml'
-          },
-          {
-            src: '/placeholder.svg',
-            sizes: '512x512',
-            type: 'image/svg+xml'
-          }
-        ]
-      },
-      workbox: {
+      manifest: false, // We're using public/manifest.json instead
+      injectManifest: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'supabase-cache',
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 // 24 hours
-              }
-            }
-          }
-        ]
-      }
+      },
+      devOptions: {
+        enabled: true,
+        type: 'module',
+      },
     })
   ].filter(Boolean),
   resolve: {
