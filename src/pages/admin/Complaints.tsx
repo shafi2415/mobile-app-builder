@@ -2,12 +2,14 @@ import { AdminLayout } from "@/components/layouts/AdminLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { BulkComplaintActions } from "@/components/admin/BulkComplaintActions";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -41,6 +43,7 @@ const AdminComplaints = () => {
   const [isInternalNote, setIsInternalNote] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const { data: complaints, isLoading } = useQuery({
     queryKey: ["admin-complaints", statusFilter],
@@ -98,16 +101,45 @@ const AdminComplaints = () => {
     enabled: !!selectedComplaint?.id,
   });
 
+  const { data: admins } = useQuery({
+    queryKey: ["admins"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("user_id, profiles(id, full_name)")
+        .in("role", ["admin", "super_admin"]);
+
+      if (error) throw error;
+      return data.map((r: any) => ({ id: r.user_id, full_name: r.profiles.full_name }));
+    },
+  });
+
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: any }) => {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("complaints")
         .update({ 
           status,
           resolved_at: status === "resolved" ? new Date().toISOString() : null
         })
-        .eq("id", id);
+        .eq("id", id)
+        .select("user_id, tracking_id")
+        .single();
+        
       if (error) throw error;
+
+      // Send email notification
+      if (data) {
+        await supabase.functions.invoke("send-notification-email", {
+          body: {
+            userId: data.user_id,
+            type: "status_change",
+            trackingId: data.tracking_id,
+            subject: "Complaint Status Updated",
+            message: `Your complaint status has been changed to: ${status.replace("_", " ").toUpperCase()}`,
+          },
+        });
+      }
     },
     onSuccess: () => {
       toast.success("Status updated successfully");
@@ -129,7 +161,21 @@ const AdminComplaints = () => {
           message,
           is_internal_note: isInternal
         });
+        
       if (error) throw error;
+
+      // Send email notification if not internal note
+      if (!isInternal && selectedComplaint) {
+        await supabase.functions.invoke("send-notification-email", {
+          body: {
+            userId: selectedComplaint.user_id,
+            type: "admin_response",
+            trackingId: selectedComplaint.tracking_id,
+            subject: "New Response to Your Complaint",
+            message,
+          },
+        });
+      }
     },
     onSuccess: () => {
       toast.success("Response added successfully");
@@ -192,11 +238,32 @@ const AdminComplaints = () => {
             </Select>
           </div>
 
+          <BulkComplaintActions
+            selectedIds={selectedIds}
+            onActionComplete={() => {
+              queryClient.invalidateQueries({ queryKey: ["admin-complaints"] });
+            }}
+            onClearSelection={() => setSelectedIds([])}
+            admins={admins || []}
+          />
+
           <div className="rounded-md border">
             <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Tracking ID</TableHead>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-12">
+                <Checkbox
+                  checked={selectedIds.length === complaints.length}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setSelectedIds(complaints.map((c: any) => c.id));
+                    } else {
+                      setSelectedIds([]);
+                    }
+                  }}
+                />
+              </TableHead>
+              <TableHead>Tracking ID</TableHead>
                   <TableHead>Subject</TableHead>
                   <TableHead>Student</TableHead>
                   <TableHead>Category</TableHead>

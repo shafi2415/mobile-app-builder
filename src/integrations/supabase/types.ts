@@ -359,6 +359,7 @@ export type Database = {
           email_verified: boolean | null
           full_name: string
           id: string
+          notification_preferences: Json | null
           phone: string | null
           updated_at: string
         }
@@ -369,6 +370,7 @@ export type Database = {
           email_verified?: boolean | null
           full_name: string
           id: string
+          notification_preferences?: Json | null
           phone?: string | null
           updated_at?: string
         }
@@ -379,6 +381,7 @@ export type Database = {
           email_verified?: boolean | null
           full_name?: string
           id?: string
+          notification_preferences?: Json | null
           phone?: string | null
           updated_at?: string
         }
