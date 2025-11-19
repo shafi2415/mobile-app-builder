@@ -18,8 +18,17 @@ import {
   QrCode,
   Eye,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Home
 } from "lucide-react";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 import { QRCodeDisplay } from "@/components/QRCodeDisplay";
@@ -193,6 +202,29 @@ const ComplaintDetails = () => {
   return (
     <StudentLayout>
       <div className="space-y-6" {...handlers}>
+        {/* Breadcrumb Navigation */}
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/student/dashboard">
+                  <Home className="h-4 w-4" />
+                </Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/student/complaints/track">Complaints</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{complaint.tracking_id}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild className="touch-manipulation">
             <Link to="/student/complaints/track">

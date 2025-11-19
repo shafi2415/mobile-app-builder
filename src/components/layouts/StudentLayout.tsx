@@ -20,9 +20,11 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { NotificationBell } from "@/components/NotificationBell";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { useToast } from "@/hooks/use-toast";
 
 interface StudentLayoutProps {
   children: ReactNode;
@@ -39,6 +41,22 @@ export const StudentLayout = ({ children }: StudentLayoutProps) => {
   const { user, signOut } = useAuth();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { toast } = useToast();
+  
+  useKeyboardShortcuts();
+
+  // Show keyboard shortcuts hint on first visit
+  useEffect(() => {
+    const hasSeenHint = localStorage.getItem("keyboard-shortcuts-hint");
+    if (!hasSeenHint) {
+      toast({
+        title: "⌨️ Keyboard Shortcuts Available",
+        description: "Ctrl+N: New Complaint • Ctrl+C: Community • Ctrl+T: Tracking • Ctrl+H: Home",
+        duration: 6000,
+      });
+      localStorage.setItem("keyboard-shortcuts-hint", "true");
+    }
+  }, [toast]);
 
   return (
     <div className="min-h-screen bg-background">
