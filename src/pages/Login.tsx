@@ -112,9 +112,14 @@ const Login = () => {
                   )}
                 />
 
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Signing in..." : "Sign In"}
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? "Signing in..." : "Sign In"}
+              </Button>
+              <Link to="/password-reset">
+                <Button type="button" variant="link" className="w-full">
+                  Forgot Password?
                 </Button>
+              </Link>
               </form>
             </Form>
 

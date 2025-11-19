@@ -3,5 +3,8 @@ project_id = "speqadwbgsnrflxnlbeq"
 [functions.validate-file-upload]
 verify_jwt = true
 
+[functions.send-security-alert]
+verify_jwt = false
+
 [functions.send-notification-email]
 verify_jwt = false

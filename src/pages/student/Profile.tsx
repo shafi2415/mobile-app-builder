@@ -5,11 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { NotificationPreferences } from "@/components/profile/NotificationPreferences";
+import { DeviceManagement } from "@/components/profile/DeviceManagement";
+import { useDeviceTracking } from "@/hooks/useDeviceTracking";
 import { useAuth } from "@/contexts/AuthContext";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const Profile = () => {
   const { user } = useAuth();
+  useDeviceTracking();
 
   return (
     <StudentLayout>
@@ -86,7 +90,22 @@ const Profile = () => {
 
         <Separator />
 
-        <NotificationPreferences />
+        <div className="space-y-6">
+          <Tabs defaultValue="notifications" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="notifications">Notifications</TabsTrigger>
+              <TabsTrigger value="security">Security & Devices</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="notifications" className="space-y-4 mt-6">
+              <NotificationPreferences />
+            </TabsContent>
+            
+            <TabsContent value="security" className="space-y-4 mt-6">
+              <DeviceManagement />
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
     </StudentLayout>
   );
