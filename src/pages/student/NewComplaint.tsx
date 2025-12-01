@@ -183,32 +183,34 @@ const NewComplaint = () => {
     <StudentLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Submit New Complaint</h1>
-          <p className="text-muted-foreground">Fill in the details below to submit your complaint</p>
+          <h1 className="text-2xl sm:text-3xl font-bold">Submit New Issue</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
+            Fill in the details below to report your issue
+          </p>
         </div>
 
-        <Card className="p-6">
+        <Card className="p-4 sm:p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <Label htmlFor="channel">Channel</Label>
-              <Select value={channel} onValueChange={(v: any) => setChannel(v)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="chat">Chat</SelectItem>
-                  <SelectItem value="call">Phone Call</SelectItem>
-                  <SelectItem value="email">Email</SelectItem>
-                  <SelectItem value="ticket">Ticket</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="subject">Title *</Label>
+              <Input
+                id="subject"
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                placeholder="Brief summary of your issue"
+                required
+                className="mt-2"
+              />
+              {errors.subject && (
+                <p className="text-sm text-destructive mt-1">{errors.subject}</p>
+              )}
             </div>
 
             <div>
               <Label htmlFor="category">Category *</Label>
               <Select value={categoryId} onValueChange={setCategoryId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a category" />
+                <SelectTrigger className="mt-2">
+                  <SelectValue placeholder="Select issue category" />
                 </SelectTrigger>
                 <SelectContent>
                   {categories?.map(cat => (
@@ -222,10 +224,10 @@ const NewComplaint = () => {
             </div>
 
             <div>
-              <Label htmlFor="priority">Priority *</Label>
+              <Label htmlFor="priority">Priority Level *</Label>
               <Select value={priorityId} onValueChange={setPriorityId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select priority" />
+                <SelectTrigger className="mt-2">
+                  <SelectValue placeholder="Select priority level" />
                 </SelectTrigger>
                 <SelectContent>
                   {priorities?.map(pri => (
@@ -239,28 +241,15 @@ const NewComplaint = () => {
             </div>
 
             <div>
-              <Label htmlFor="subject">Subject *</Label>
-              <Input
-                id="subject"
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                placeholder="Brief summary of your issue"
-                required
-              />
-              {errors.subject && (
-                <p className="text-sm text-destructive mt-1">{errors.subject}</p>
-              )}
-            </div>
-
-            <div>
               <Label htmlFor="description">Description *</Label>
               <Textarea
                 id="description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Detailed description of your issue"
+                placeholder="Provide a detailed description of your issue..."
                 rows={6}
                 required
+                className="mt-2"
               />
               {errors.description && (
                 <p className="text-sm text-destructive mt-1">{errors.description}</p>
@@ -268,13 +257,13 @@ const NewComplaint = () => {
             </div>
 
             <div>
-              <Label>Attachments</Label>
+              <Label>Attachments (Optional)</Label>
               <div className="mt-2 space-y-2">
                 {files.map((file, index) => (
-                  <div key={index} className="flex items-center gap-2 p-2 border rounded">
-                    <FileIcon className="h-4 w-4" />
+                  <div key={index} className="flex items-center gap-2 p-3 border rounded-lg bg-muted/30">
+                    <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                     <span className="text-sm flex-1 truncate">{file.name}</span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">
                       {(file.size / 1024).toFixed(1)} KB
                     </span>
                     <Button
@@ -307,11 +296,22 @@ const NewComplaint = () => {
               </div>
             </div>
 
-            <div className="flex gap-4">
-              <Button type="submit" disabled={submitComplaintMutation.isPending}>
-                {submitComplaintMutation.isPending ? "Submitting..." : "Submit Complaint"}
+            <div className="flex gap-4 pt-4 flex-col sm:flex-row">
+              <Button 
+                type="submit" 
+                disabled={submitComplaintMutation.isPending}
+                size="lg"
+                className="w-full sm:w-auto"
+              >
+                {submitComplaintMutation.isPending ? "Submitting..." : "Submit Issue"}
               </Button>
-              <Button type="button" variant="outline" onClick={() => navigate("/student/complaints")}>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => navigate("/student/complaints")}
+                size="lg"
+                className="w-full sm:w-auto"
+              >
                 Cancel
               </Button>
             </div>

@@ -96,20 +96,16 @@ const Index = () => {
               className="mb-8"
             >
               <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-foreground mb-6 leading-tight">
-                Your Support Hub for{" "}
-                <span className="relative inline-block">
-                  <span className="relative z-10">Brototype</span>
-                  <motion.span
-                    className="absolute bottom-2 left-0 w-full h-3 bg-primary/20 -z-0"
-                    initial={{ width: 0 }}
-                    animate={{ width: "100%" }}
-                    transition={{ duration: 0.8, delay: 0.3 }}
-                  />
+                <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                  BroComp
                 </span>
               </h1>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                Streamline your support experience with multi-channel complaint
-                management, real-time tracking, and a vibrant community space.
+              <p className="text-2xl sm:text-3xl font-semibold text-foreground mb-4">
+                Seamless Issue Reporting for Brototype
+              </p>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                Professional tech support management with multi-channel complaint tracking, 
+                real-time status updates, and collaborative community features.
               </p>
             </motion.div>
 
