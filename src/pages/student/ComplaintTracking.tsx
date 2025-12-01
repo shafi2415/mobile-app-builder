@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Plus, Calendar, ArrowRight } from "lucide-react";
+import { Search, Plus, Calendar, ArrowRight, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
 
@@ -26,15 +26,23 @@ const ComplaintTracking = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  const statusColors = {
-    submitted: "bg-blue-500",
-    in_review: "bg-yellow-500",
-    processing: "bg-orange-500",
-    resolved: "bg-green-500",
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "submitted":
+        return "bg-blue-500 text-white";
+      case "in_review":
+        return "bg-yellow-500 text-white";
+      case "processing":
+        return "bg-orange-500 text-white";
+      case "resolved":
+        return "bg-green-500 text-white";
+      default:
+        return "bg-gray-500 text-white";
+    }
   };
 
   const statusLabels = {
-    submitted: "Submitted",
+    submitted: "Pending",
     in_review: "In Review",
     processing: "Processing",
     resolved: "Resolved",
@@ -42,6 +50,26 @@ const ComplaintTracking = () => {
 
   useEffect(() => {
     fetchComplaints();
+
+    // Set up real-time subscription for live updates
+    const channel = supabase
+      .channel('complaints-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'complaints'
+        },
+        () => {
+          fetchComplaints();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   useEffect(() => {
@@ -104,14 +132,14 @@ const ComplaintTracking = () => {
   return (
     <StudentLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Track Complaints</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl sm:text-3xl font-bold">My Complaints</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">
               Monitor the status of all your support requests
             </p>
           </div>
-          <Button asChild>
+          <Button asChild size="lg" className="w-full sm:w-auto">
             <Link to="/student/complaints/new">
               <Plus className="mr-2 h-4 w-4" />
               New Complaint
@@ -148,16 +176,28 @@ const ComplaintTracking = () => {
 
         {/* Complaints List */}
         {filteredComplaints.length === 0 ? (
-          <Card className="p-12 text-center">
-            <p className="text-muted-foreground mb-4">
-              {searchQuery || statusFilter !== "all"
-                ? "No complaints match your filters"
-                : "No complaints yet. Submit your first complaint to get started!"}
-            </p>
-            <Button asChild>
+          <Card className="p-12 text-center space-y-6">
+            <div className="flex justify-center">
+              <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center">
+                <FileText className="w-12 h-12 text-muted-foreground" />
+              </div>
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold mb-2">
+                {searchQuery || statusFilter !== "all"
+                  ? "No complaints found"
+                  : "No complaints yet"}
+              </h3>
+              <p className="text-muted-foreground mb-6">
+                {searchQuery || statusFilter !== "all"
+                  ? "Try adjusting your search or filters"
+                  : "Submit your first issue to get started with BroComp support"}
+              </p>
+            </div>
+            <Button asChild size="lg">
               <Link to="/student/complaints/new">
-                <Plus className="mr-2 h-4 w-4" />
-                New Complaint
+                <Plus className="mr-2 h-5 w-5" />
+                Submit New Issue
               </Link>
             </Button>
           </Card>
@@ -170,60 +210,43 @@ const ComplaintTracking = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
               >
-                <Card className="p-6 hover:shadow-lg transition-all">
-                  <Link to={`/student/complaints/${complaint.id}`}>
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 space-y-2">
-                        <div className="flex items-center gap-3">
-                          <h3 className="text-xl font-semibold">
+                <Card className="p-4 sm:p-6 hover:shadow-lg transition-all hover:border-primary/50">
+                  <Link to={`/student/complaints/${complaint.id}`} className="block">
+                    <div className="flex items-start justify-between gap-3 sm:gap-4">
+                      <div className="flex-1 space-y-3 min-w-0">
+                        <div className="flex items-start gap-2 flex-wrap">
+                          <h3 className="text-lg sm:text-xl font-semibold flex-1 min-w-0 break-words">
                             {complaint.subject}
                           </h3>
                           <Badge
-                            className={
-                              statusColors[
-                                complaint.status as keyof typeof statusColors
-                              ]
-                            }
+                            className={getStatusColor(complaint.status)}
                           >
-                            {
-                              statusLabels[
-                                complaint.status as keyof typeof statusLabels
-                              ]
-                            }
+                            {statusLabels[complaint.status as keyof typeof statusLabels]}
                           </Badge>
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          Tracking ID: {complaint.tracking_id}
-                        </p>
-                        <p className="text-muted-foreground line-clamp-2">
+                        <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                          <Calendar className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                          <span className="truncate">
+                            {format(new Date(complaint.created_at), "PP")}
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground line-clamp-2">
                           {complaint.description}
                         </p>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4" />
-                            {format(new Date(complaint.created_at), "PPP")}
-                          </div>
-                          <Badge
-                            variant="outline"
-                            style={{
-                              backgroundColor: `${complaint.complaint_categories?.color}20`,
-                              borderColor: complaint.complaint_categories?.color,
-                            }}
-                          >
-                            {complaint.complaint_categories?.name}
-                          </Badge>
-                          <Badge
-                            variant="outline"
-                            style={{
-                              backgroundColor: `${complaint.complaint_priorities?.color}20`,
-                              borderColor: complaint.complaint_priorities?.color,
-                            }}
-                          >
-                            {complaint.complaint_priorities?.name}
-                          </Badge>
+                        <div className="flex flex-wrap items-center gap-2">
+                          {complaint.complaint_categories?.name && (
+                            <Badge variant="secondary" className="text-xs">
+                              {complaint.complaint_categories.name}
+                            </Badge>
+                          )}
+                          {complaint.complaint_priorities?.name && (
+                            <Badge variant="outline" className="text-xs">
+                              {complaint.complaint_priorities.name}
+                            </Badge>
+                          )}
                         </div>
                       </div>
-                      <Button variant="ghost" size="icon">
+                      <Button variant="ghost" size="icon" className="flex-shrink-0 hidden sm:flex">
                         <ArrowRight className="h-5 w-5" />
                       </Button>
                     </div>
