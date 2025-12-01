@@ -23,7 +23,10 @@ type LoginFormData = z.infer<typeof loginSchema>;
 const Login = () => {
   const {
     signIn,
-    user
+    user,
+    isAdmin,
+    isSuperAdmin,
+    loading
   } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -40,10 +43,15 @@ const Login = () => {
     }
   });
   useEffect(() => {
-    if (user) {
-      navigate("/dashboard");
+    // Only redirect after roles have been checked (loading is false)
+    if (!loading && user) {
+      if (isAdmin || isSuperAdmin) {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/student/dashboard");
+      }
     }
-  }, [user, navigate]);
+  }, [user, isAdmin, isSuperAdmin, loading, navigate]);
   const onSubmit = async (data: LoginFormData) => {
     // Check rate limit
     const {
@@ -61,7 +69,7 @@ const Login = () => {
       } = await signIn(data.email, data.password);
       if (!error) {
         resetAttempts();
-        navigate("/dashboard");
+        // Navigation will be handled by useEffect after roles are loaded
       } else {
         incrementAttempts();
       }
