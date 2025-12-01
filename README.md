@@ -1,3 +1,10 @@
+# BroComp - Complaint Management System
+A dedicated portal for the Brototype community to raise, track, and resolve facility and technical issues efficiently.
+**Features:**
+- Real-time Complaint Tracking
+- Priority-based Categorization
+- Mobile-First Design
+
 # Welcome to your Lovable project
 
 ## Project info
